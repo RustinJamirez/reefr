@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from reefr_api import models
+
+admin.site.register(models.UserProfile)

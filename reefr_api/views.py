@@ -1,9 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication
 
 from reefr_api import serializers
-
+from reefr_api import models
+from reefr_api import permissions
 
 class HelloApiView(APIView):
     """Test API View"""
@@ -42,3 +45,53 @@ class HelloApiView(APIView):
         """Handle deletion of an object"""
         return Response({'method': 'DELETE'})
 
+
+class HelloViewSet(viewsets.ViewSet):
+    """Test API Viewset"""
+    serializer_class = serializers.HelloSerializer
+
+    def list(self, request):
+        """return a hello message"""
+        a_view_set = [
+            'list, create, retriece, update, partial_update',
+            'automagically maps urls using routers',
+            'more func, less code',
+        ]
+        return Response({'message': 'hello', 'a_viewset': a_view_set})
+
+    def create(self, request):
+        """create a new hello message"""
+        serializer = self.serializer_class(data = request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            message = f'Hello {name}'
+            return Response({'message': message})
+        else:
+            return Response(
+                serializer.errors,
+                status = status.HTTP_400_BAD_REQUEST
+            )
+
+    def retrieve(self, request, pk=None):
+        """Handle getting an object by it's ID"""
+        return Response({'http_method' : 'GET'})
+
+    def update(self, request, pk=None):
+        """Handle updating an pbject"""
+        return Response({'http_method' : 'PUT'})
+
+    def partial_update(self, request, pk=None):
+        """Handle updating part of an update"""
+        return Response({'http_method': 'PATCH'})
+
+    def destroy(self, request, pk=None):
+        """Handle deleting an object"""
+        return Response({'http_method': 'DELETE'})
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """Handle creating and updating profiles"""
+    serializer_class = serializers.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()
+    authentication_classes = (TokenAuthentication,  )
+    permission_classes = (permissions.UpdateOwnProfile, )

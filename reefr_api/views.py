@@ -12,6 +12,9 @@ from reefr_api import serializers
 from reefr_api import models
 from reefr_api import permissions
 
+from itertools import chain
+
+
 class HelloApiView(APIView):
     """Test API View"""
     serializer_class = serializers.HelloSerializer
@@ -120,4 +123,71 @@ class UserProfileFeedViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Sets user profile to logged in user"""
+        serializer.save(user_profile=self.request.user)
+
+
+class TankViewSet(viewsets.ModelViewSet):
+    """Handles creating, reading, updating profile feed items"""
+    authentication_classes = (TokenAuthentication, )
+    serializer_class = serializers.TankSerializer
+    # queryset = models.Tank.objects.filter(user=self.request.user)
+    permission_classes = (
+        permissions.ShowOwnTank,
+        IsAuthenticated
+    )
+
+    def get_queryset(self):
+        return models.Tank.objects.filter(user_profile=self.request.user)
+
+    def perform_create(self, serializer):
+        """Sets user profile to logged in user"""
+        serializer.save(user_profile=self.request.user)
+
+
+class UserParameterTypeViewSet(viewsets.ModelViewSet):
+    authentication_classes = (TokenAuthentication, )
+    serializer_class = serializers.UserParameterTypeSerializer
+
+    permission_classes = (
+        permissions.UpdateOwnUserParameters,
+        IsAuthenticated
+    )
+
+    def get_queryset(self):
+        return models.UserParameterType.objects.filter(user_profile=self.request.user)
+
+    def perform_create(self, serializer):
+        """Sets user profile to logged in user"""
+        serializer.save(user_profile=self.request.user)
+
+
+class ParameterTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication, )
+    serializer_class = serializers.ParameterTypeSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        user_param_queryset = models.UserParameterType.objects.filter(user_profile=self.request.user)
+        param_queryset = models.ParameterType.objects.all()
+        return list(chain(param_queryset, user_param_queryset))
+
+
+
+
+class ParameterMeasurementViewSet(viewsets.ModelViewSet):
+    authentication_classes = (TokenAuthentication, )
+    serializer_class = serializers.ParameterMeasurementSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        return models.ParameterMeasurement.objects.filter(
+            user_profile=self.request.user
+        )
+
+    def perform_create(self, serializer):
+        """Sets user profile to logged in user"""
+        print('**********-------------***********')
+        print(dir(self))
+        print(dir(serializer))
+        print('**********-------------***********')
         serializer.save(user_profile=self.request.user)

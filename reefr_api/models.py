@@ -3,6 +3,10 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.models import BaseUserManager
 from django.conf import settings
+from django.core.validators import MinValueValidator
+
+import datetime
+
 
 class UserProfileManager(BaseUserManager):
     """Manager for user profiles"""
@@ -66,3 +70,71 @@ class ProfileFeedItem(models.Model):
     def __str__(self):
         """Return the model as a string"""
         return self.status_text
+
+
+class Tank(models.Model):
+    """A fish tank model"""
+    user_profile = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING
+    )
+    name = models.CharField(max_length=255)
+    created_on = models.DateField(default=datetime.date.today, blank=False)
+    volume = models.FloatField(
+        validators=[MinValueValidator(0.0)]
+    )
+    volume_units = models.CharField(choices=[('GAL', 'gallons'), ('LTR', 'liters')], max_length=6)
+    description = models.CharField(max_length=255)
+
+    def __str__(self):
+        """Return the model as a string"""
+        return self.name
+
+
+class UserParameterType(models.Model):
+    user_profile = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING
+    )
+    name = models.CharField(max_length=32)
+    unit = models.CharField(max_length=32)
+    min_safe = models.FloatField()
+    max_safe = models.FloatField()
+
+    def __str__(self):
+        """Return the model as a string"""
+        return self.name
+
+
+class ParameterType(models.Model):
+    name = models.CharField(max_length=32)
+    unit = models.CharField(max_length=32, blank=True)
+    min_safe = models.FloatField()
+    max_safe = models.FloatField()
+
+    def __str__(self):
+        """Return the model as a string"""
+        return self.name
+
+
+class ParameterMeasurement(models.Model):
+    """Tank measurement"""
+    user_profile = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING
+    )
+    tank_id = models.ForeignKey(
+        'Tank',
+        on_delete=models.DO_NOTHING
+    )
+    parameter = models.ForeignKey(
+        'ParameterType',
+        on_delete=models.DO_NOTHING
+    )
+    value = models.FloatField()
+    measured_on = models.DateTimeField(auto_now_add=True)
+    notes = models.CharField(max_length=255)
+
+    def __str__(self):
+        """Return the model as a string"""
+        return f'{self.parameter.name} {self.value}'

@@ -107,10 +107,15 @@ class UserParameterType(models.Model):
 
 
 class ParameterType(models.Model):
+    user_profile = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING
+    )
     name = models.CharField(max_length=32)
     unit = models.CharField(max_length=32, blank=True)
     min_safe = models.FloatField()
     max_safe = models.FloatField()
+    default = models.BooleanField(default=False)
 
     def __str__(self):
         """Return the model as a string"""
@@ -132,9 +137,58 @@ class ParameterMeasurement(models.Model):
         on_delete=models.DO_NOTHING
     )
     value = models.FloatField()
-    measured_on = models.DateTimeField(auto_now_add=True)
+    measured_on = models.DateTimeField(default=datetime.datetime.now)
     notes = models.CharField(max_length=255)
 
     def __str__(self):
         """Return the model as a string"""
         return f'{self.parameter.name} {self.value}'
+
+
+class Fish(models.Model):
+    """A Fish"""
+    user_profile = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING
+    )
+    tank_id = models.ForeignKey(
+        'Tank',
+        on_delete=models.DO_NOTHING
+    )
+    name = models.CharField(max_length=255)
+    species = models.CharField(max_length=255)
+    added_on = models.DateField(default=datetime.date.today)
+
+
+class Equipment(models.Model):
+    """Tank equipment"""
+    user_profile = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING
+    )
+    tank_id = models.ForeignKey(
+        'Tank',
+        on_delete=models.DO_NOTHING
+    )
+    name = models.CharField(max_length=255)
+    brand = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField()
+    added_on = models.DateField(default=datetime.date.today)
+
+
+class Image(models.Model):
+    """Images of tank, fish, equipment, etc"""
+    user_profile = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING
+    )
+    tank_id = models.ForeignKey(
+        'Tank',
+        on_delete=models.DO_NOTHING
+    )
+    description = models.CharField(max_length=255)
+    file = models.ImageField(blank=False, null=False)
+
+    def __str__(self):
+        return self.file.name
+

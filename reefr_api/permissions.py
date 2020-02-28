@@ -53,8 +53,29 @@ class UpdateOwnUserParameters(permissions.BasePermission):
         return obj.user_profile.id == request.user.id
 
 
-class UpdateOwnParameterMeasurements(permissions.BasePermission):
-    """Allow users to make mesurements for their own tank"""
+class UpdateAndViewOwnParameterMeasurements(permissions.BasePermission):
+    """Allow users to make measurements for their own tank"""
+
+    def has_object_permission(self, request, view, obj):
+        return obj.user_profile.id == request.user.id
+
+
+class UpdateAndViewOwnFish(permissions.BasePermission):
+    """Allow users to view/update fish for their own tank"""
+
+    def has_object_permission(self, request, view, obj):
+        return obj.user_profile.id == request.user.id
+
+
+class UpdateAndViewOwnEquipment(permissions.BasePermission):
+    """Allow users to view/update equipment for their own tank"""
+
+    def has_object_permission(self, request, view, obj):
+        return obj.user_profile.id == request.user.id
+
+
+class UpdateAndViewOwnImage(permissions.BasePermission):
+    """Allow users to view/update their own image"""
 
     def has_object_permission(self, request, view, obj):
         return obj.user_profile.id == request.user.id
